@@ -12,11 +12,11 @@ class CreditCardDb:
         conn = sqlite3.connect(self.db_name)
         return conn
 
-    def create_table(self):
+    def create_card_table(self):
         self.conn.execute('''CREATE TABLE IF NOT EXISTS card
                  (id integer primary key autoincrement, number text, pin text, balance integer default 0)''')
 
-    def insert_record(self, card_number, pin, balance):
+    def insert_card(self, card_number, pin, balance):
         cursor = self.conn.cursor()
         cursor.execute("INSERT INTO card (number, pin, balance) VALUES (?, ?, ?)", (card_number, pin, balance))
         self.conn.commit()
@@ -26,7 +26,7 @@ class CreditCardDb:
         cursor.execute("SELECT * FROM card WHERE number=?", [card_number])
         return cursor.fetchone() is not None
 
-    def check_card(self, card_number, pin):
+    def check_card_login(self, card_number, pin):
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM card WHERE number=? AND pin=?", [card_number, pin])
         return cursor.fetchone() is not None
@@ -52,7 +52,7 @@ class CreditCard:
 
     def __init__(self, credit_card_db):
         self.credit_card_db = credit_card_db
-        credit_card_db.create_table()
+        credit_card_db.create_card_table()
 
     @staticmethod
     def print_menu():
@@ -78,7 +78,7 @@ class CreditCard:
             card_number += str(last_digit)
             if not self.credit_card_db.card_number_exists(card_number):
                 pin = self.generate_pin()
-                self.credit_card_db.insert_record(card_number, pin, 0)
+                self.credit_card_db.insert_card(card_number, pin, 0)
                 generated = True
         return [card_number, pin]
 
@@ -108,7 +108,7 @@ class CreditCard:
     def login(self):
         card_number = input("Enter your card number:")
         pin = input("Enter your PIN:")
-        if self.credit_card_db.check_card(card_number, pin):
+        if self.credit_card_db.check_card_login(card_number, pin):
             print("You have successfully logged in!\n")
             self.account_operations(card_number, pin)
         else:
